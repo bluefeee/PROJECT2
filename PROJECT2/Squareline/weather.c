@@ -1,5 +1,7 @@
 #include "weather.h"
 
+
+char cityname[32];
 // replyData:{"reason":"查询成功!","result":{"city":"深圳","realtime":{"temperature":"22","humidity":"51","info":"多云","wid":"01","direct":"西南风","power":"1级","aqi":"54"},"future":[{"date":"2025-12-30","temperature":"16\/23℃","weather":"晴","wid":{"day":"00","night":"00"},"direct":"持续无风向"},{"date":"2025-12-31","temperature":"16\/23℃","weather":"阴","wid":{"day":"02","night":"02"},"direct":"持续无风向"},{"date":"2026-01-01","temperature":"11\/16℃","weather":"多云","wid":{"day":"01","night":"01"},"direct":"持续无风向"},{"date":"2026-01-02","temperature":"8\/16℃","weather":"晴","wid":{"day":"00","night":"00"},"direct":"持续无风向"},{"date":"2026-01-03","temperature":"10\/16℃","weather":"晴","wid":{"day":"00","night":"00"},"direct":"持续无风向"}]},"error_code":0}
 
 static lv_img_dsc_t *weather_img[] = {

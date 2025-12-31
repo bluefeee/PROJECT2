@@ -5,6 +5,7 @@
 
 #include "ui.h"
 #include "weather.h"
+#include "mqtt_c_demo.h"
 
 /*=====================登录界面回调函数===========================*/
 void LogIn(lv_event_t * e)
@@ -48,28 +49,129 @@ void SelectProfilePhoto(lv_event_t * e)
 void ConfirmCheck(lv_event_t * e)
 {
 
-	// lv_obj_t * dropdown = lv_event_get_target(e);
-	// lv_dropdown_get_selected_str(dropdown, city, sizeof(city));
-	if (strlen(city) == 0) {
-		strcpy(city, "深圳");
+	if (strlen(cityname) == 0) {
+		strcpy(cityname, "深圳");
 	}
-	printf("正在查询%s的天气\n", city);
-	getWeather(city);
+	printf("正在查询%s的天气\n", cityname);
+	getWeather(cityname);
 }
 
 void CheckWeather(lv_event_t * e)
 {
 	lv_obj_t * dropdown = lv_event_get_target(e);
-	lv_dropdown_get_selected_str(dropdown, city, sizeof(city));
-	printf("Selected city: %s\n", city);
+	lv_dropdown_get_selected_str(dropdown, cityname, sizeof(cityname));
+	printf("Selected cityname: %s\n", cityname);
 }
 
+/*============================开关灯界面===============================*/
 
+void * Lightimageshow(void){
+    while(1){
+        if(LEDSTATE[0] == false){
+            lv_obj_add_flag(ui_ImageLight1, LV_OBJ_FLAG_HIDDEN);
+        } else{
+            lv_obj_clear_flag(ui_ImageLight1, LV_OBJ_FLAG_HIDDEN);
+        }
+            if(LEDSTATE[1] == false){
+            lv_obj_add_flag(ui_ImageLight2, LV_OBJ_FLAG_HIDDEN);
+        }else {
+            lv_obj_clear_flag(ui_ImageLight2, LV_OBJ_FLAG_HIDDEN);
+        } 
+        if(LEDSTATE[2] == false){
+            lv_obj_add_flag(ui_ImageLight3, LV_OBJ_FLAG_HIDDEN);
+        } else{
+            lv_obj_clear_flag(ui_ImageLight3, LV_OBJ_FLAG_HIDDEN);
+        }
+            if(LEDSTATE[3] == false){
+            lv_obj_add_flag(ui_ImageLight4, LV_OBJ_FLAG_HIDDEN);
+        }else{
+            lv_obj_clear_flag(ui_ImageLight4, LV_OBJ_FLAG_HIDDEN);
+        }
+        usleep(1000000);
+    }
+}
+
+void LightMQTTcontrl(){  // 放在screen4初始化
+    pthread_t tid;
+    int ret = pthread_create(&tid, NULL, Lightimageshow, NULL);
+    if (ret == 0) {
+        printf("成功创建新Lightimageshow线程(tid: %lu)\n", (unsigned long)tid);
+        pthread_detach(tid); // 分离线程，自动回收资源
+    }else {
+        printf("创建Lightimageshow线程失败(错误码: %d)\n", ret);
+        tid = 0; // 重置为无效ID
+    }
+}
 
 void LEDcontorl(lv_event_t * e)
 {
-	// Your code here
+    // 取消旧的MQTT线程
+    if (g_mqtt_tid != 0) {
+        // 先尝试取消线程
+        int cancel_ret = pthread_cancel(g_mqtt_tid);
+        if (cancel_ret == 0) {
+            printf("成功发送取消信号给旧MQTT线程（tid: %lu）\n", (unsigned long)g_mqtt_tid);
+        } else {
+            printf("取消旧MQTT线程失败（错误码: %d）\n", cancel_ret);
+        }
+        // 确保线程资源释放
+        usleep(100000); // 100ms
+        g_mqtt_tid = 0; // 重置线程ID
+    }
+
+    // 过滤
+    lv_event_code_t event_code = lv_event_get_code(e);
+    if (event_code != LV_EVENT_CLICKED) {
+        return;
+    }
+
+    //获取当前按下的对象
+    lv_obj_t *btn = lv_event_get_target(e);
+
+    // 映射LEDSTATE数组
+    int led_index = -1;
+    if (btn == ui_Button3) {
+        led_index = 0;
+    } else if (btn == ui_Button4) {
+        led_index = 1;
+    } else if (btn == ui_Button5) {
+        led_index = 2;
+    } else if (btn == ui_Button6) {
+        led_index = 3;
+    }
+
+
+
+    // 翻转LED
+    if (led_index >= 0 && led_index < 4) {
+        LEDSTATE[led_index] = !LEDSTATE[led_index];
+        printf("按键对应LED%d状态已翻转:%s\n", led_index+7, LEDSTATE[led_index] ? "开启" : "关闭");
+    }
+    char buf[2] = {0};
+	for (int i = 0; i < 4; i++){
+		int fd = open("/dev/led_drv", O_RDWR);
+		if (fd == -1){  perror("open");
+			return -1;
+		}
+		buf[0] = LEDSTATE[i];   buf[1] = i+7;
+		write(fd, buf, 2);
+		close(fd);
+	}
+
+    // 创建新线程
+    int create_ret = pthread_create(&g_mqtt_tid, NULL, MQTTinit, NULL);
+    if (create_ret == 0) {
+        // printf("成功创建新MQTT线程(tid: %lu)\n", (unsigned long)g_mqtt_tid);
+        pthread_detach(g_mqtt_tid); // 分离线程，自动回收资源
+    } else {
+        printf("创建MQTT线程失败(错误码: %d)\n", create_ret);
+        g_mqtt_tid = 0; // 重置为无效ID
+    }
+    
+
 }
+
+/*=============================聊天界面===================================*/ 
 
 void ChatEvent(lv_event_t * e)
 {
@@ -90,5 +192,4 @@ void GameStart(lv_event_t * e)
 {
 	// Your code here
 }
-
 

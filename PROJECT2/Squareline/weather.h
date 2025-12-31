@@ -12,7 +12,7 @@
 #define __WEATHERVALUE_H__
 
 
-char city[32];
+extern char cityname[32];
 #endif // __WEATHERVALUE_H__
 
 void getWeather(char* city);

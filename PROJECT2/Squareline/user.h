@@ -37,7 +37,7 @@ void my_timer(lv_timer_t * t);
 
 
 extern volatile char flag;
-user_p head;
+extern user_p usr_head;
 extern lv_timer_t *timer;
 
 

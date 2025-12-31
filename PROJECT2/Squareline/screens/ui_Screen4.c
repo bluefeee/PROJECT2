@@ -55,6 +55,7 @@ void ui_event_Button5(lv_event_t * e)
 
     if(event_code == LV_EVENT_CLICKED) {
         _ui_flag_modify(ui_ImageLight3, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+
         LEDcontorl(e);
     }
 }
@@ -308,6 +309,7 @@ void ui_Screen4_screen_init(void)
     lv_obj_add_event_cb(ui_Button6, ui_event_Button6, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Image55, ui_event_Image55, LV_EVENT_ALL, NULL);
 
+    LightMQTTcontrl();
 }
 
 void ui_Screen4_screen_destroy(void)

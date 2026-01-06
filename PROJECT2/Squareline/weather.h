@@ -6,7 +6,7 @@
 
 
 #define WEATHER_URL "http://apis.juhe.cn/simpleWeather/query"
-#define KEY "9559bed4b5a407b3c60015860167fac3"
+#define KEY "修改为你的key" //申请的key
 
 #ifndef __WEATHERVALUE_H__
 #define __WEATHERVALUE_H__
